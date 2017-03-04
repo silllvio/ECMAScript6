@@ -17,7 +17,7 @@
         var connection;
 
         // Abre a conexão. O número representa a versão do banco. Não é obrigatório seguir uma sequência.
-        var openRequest = window.indexedDB.open('aluraframe', 5);
+        var openRequest = window.indexedDB.open('aluraframe', 6);
 
         // Cria ou altera um banco de dados já existente.
         openRequest.onupgradeneeded = e => {
@@ -68,6 +68,47 @@
             request.onsuccess = e => console.log('Negociação incluida com sucesso');
             request.onerror = e => console.log('erro ao inclur a negociação');
         }
+
+
+        function findAll() {
+
+            //Pegando uma transação, passando o ObjectStore e o tipo de transação.
+            let transaction = connection.transaction(['negociacoes'], 'readwrite');
+
+            // Acessando a objectStore;
+            let store = transaction.objectStore('negociacoes');
+
+            // Abrindo um cursor
+            let cursor = store.openCursor();
+
+            let negociacoes = [];
+
+            cursor.onsuccess = e => {
+
+                // Ponteiro para uma negociação no IndexDB. Nâo é a negociação, é um ponteiro.
+                let ponteiro = e.target.result;
+
+                // verifica se a variável não está vazia, se estiver vazia o retorno será false,
+                // se houver o retorno será true e o bloco será executado.
+                if (ponteiro) {
+
+                    // Pega o valor do dado que o ponteiro está apontando.
+                    let registro = ponteiro.value;
+
+                    //Temos que instanciar as negociações já que no IndexDB temos apenas os registros.
+                    negociacoes.push(new Negociacao(registro._data, registro._quantidade, registro._valor));
+
+                    // Informamos que o ponteiro deve is para o próximo registro.    
+                    ponteiro.continue();
+                } else {
+                    console.log(negociacoes);
+                }
+            };
+
+            cursor.onerror = e => console.log(e.target.error.name);
+
+        };
+
 
         //adiciona();
     </script>

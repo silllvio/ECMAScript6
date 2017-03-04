@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Aprendedno indexDB</title>
+</head>
+
+<body>
+    <script src="js/app/models/Negociacao.js">
+
+    </script>
+    <script>
+        // conection = e.target.result; // usado para guardar a conexão obtida com sucesso do banco de dados.
+        var connection;
+
+        // Abre a conexão. O número representa a versão do banco. Não é obrigatório seguir uma sequência.
+        var openRequest = window.indexedDB.open('aluraframe', 5);
+
+        // Cria ou altera um banco de dados já existente.
+        openRequest.onupgradeneeded = e => {
+            console.log('sucesso no onupgradeneeded');
+
+            // Acessando o indexDB
+            let minhaConexao = e.target.result;
+
+            //validando se já existe uma objectStore no banco.
+            if (minhaConexao.objectStoreNames.contains('negociacoes')) {
+                minhaConexao.deleteObjectStore('negociacoes');
+                console.log('Banco dropado');
+
+                // Precisa criar a lógica para guardar os dados da objectStore antes de ser dropada
+
+            }
+
+            // Criando a --ObjectStore (Tabela)
+            // O segundo parâmetro é para criar com autoincrement.
+            minhaConexao.createObjectStore('negociacoes', { autoIncrement: true });
+            console.log('--ObjectStore criada com sucesso');
+
+        }
+
+        //Nesse ponto temos acesso a conexão.
+        openRequest.onsuccess = e => {
+            console.log('conectado com sucesso. onsuccess do onupgradeneeded');
+
+            // Acessando o indexDB
+            connection = e.target.result;
+        };
+        openRequest.onerror = e => console.log('erro');
+
+
+        function adiciona() {
+
+            //Abrindo uma transação para uma objectStore específica
+            let transaction = connection.transaction(['negociacoes'], 'readwrite');
+
+            // Pegando uma store transacional
+            let store = transaction.objectStore('negociacoes');
+
+            let negociacao = new Negociacao(new Date(), 1, 200);
+
+            // Requisição de gravação
+            let request = store.add(negociacao);
+
+            request.onsuccess = e => console.log('Negociação incluida com sucesso');
+            request.onerror = e => console.log('erro ao inclur a negociação');
+        }
+
+        //adiciona();
+    </script>
+
+</body>
+
+</html>
+<!-- ObjectStore são parecidas com tabelas, porém não são relacionais ou não há restrições. */-->
+<!-- Para criar uma objectStore precisamos atualizar a versão do indexDB. -->
+
+<!--O indexDB é certificado certificado pela W3C, IndexedDB** (IDB).-->
+<!--window.indexDB é uma fábrica de indexDB-->
+<!--para gravar na Object store precisamos definir um ID único-->

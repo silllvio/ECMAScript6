@@ -1,4 +1,4 @@
-class HttpService {
+export class HttpService {
 
     _handleErros(res) {
         if (!res.ok) throw new Erro(res.statusText);

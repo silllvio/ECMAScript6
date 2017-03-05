@@ -65,7 +65,7 @@ class NegociacaoDao {
                 .objectStore(this._store)
                 .clear();
 
-            request.onsuccess = e => resolve('Negociações removidas!');
+            request.onsuccess = e => resolve('Negociações removidas certinho!');
             request.onerror = e => reject(e.target.error.name);
         });
     };

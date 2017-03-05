@@ -1,76 +1,93 @@
-class NegociacaoDao {
+'use strict';
 
-    constructor(connection) {
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+var NegociacaoDao = function () {
+    function NegociacaoDao(connection) {
+        _classCallCheck(this, NegociacaoDao);
 
         this._connection = connection;
         this._store = 'negociacoes';
+    }
 
-    };
+    _createClass(NegociacaoDao, [{
+        key: 'add',
+        value: function add(negociacao) {
+            var _this = this;
 
-    add(negociacao) {
+            // Retorna a promise. Esse padrão é muito usado.
+            return new Promise(function (resolve, reject) {
 
-        // Retorna a promise. Esse padrão é muito usado.
-        return new Promise((resolve, reject) => {
+                var request = _this._connection.transaction([_this._store], 'readwrite').objectStore(_this._store).add(negociacao);
 
-            let request = this._connection
-                .transaction([this._store], 'readwrite')
-                .objectStore(this._store)
-                .add(negociacao);
+                /*        let transaction = this._connection
+                            .transaction([this._store], 'readwrite')
+                            .abort();  //Esse método é nosso rollback.
+                */
 
-            /*        let transaction = this._connection
-                        .transaction([this._store], 'readwrite')
-                        .abort();  //Esse método é nosso rollback.
-        */
+                request.onsuccess = function (e) {
+                    return resolve();
+                };
+                request.onerror = function (e) {
+                    return reject(e.target.error.name);
+                };
 
-            request.onsuccess = e => resolve();
-            request.onerror = e => reject(e.target.error.name);
+                // let transaction = this._connection.transaction([this._store], 'readwrite');
+                // let store = transaction.objectStore(this._store);
+                // let request = store.add(negociacao);
+            });
+        }
+    }, {
+        key: 'findAll',
+        value: function findAll() {
+            var _this2 = this;
 
-            // let transaction = this._connection.transaction([this._store], 'readwrite');
-            // let store = transaction.objectStore(this._store);
-            // let request = store.add(negociacao);
+            return new Promise(function (resolve, reject) {
 
-        });
-    };
+                var cursor = _this2._connection.transaction([_this2._store], 'readwrite').objectStore(_this2._store).openCursor();
 
-    findAll() {
+                var negociacoes = [];
 
-        return new Promise((resolve, reject) => {
+                cursor.onsuccess = function (e) {
+                    var ponteiro = e.target.result;
+                    if (ponteiro) {
+                        var registro = ponteiro.value;
+                        negociacoes.push(new Negociacao(registro._data, registro._quantidade, registro._valor));
+                        ponteiro.continue();
+                    } else {
+                        resolve(negociacoes);
+                    }
+                };
+                cursor.onerror = function (e) {
+                    return e.target.erro.name;
+                };
+            });
+        }
+    }, {
+        key: 'delete',
+        value: function _delete() {
+            var _this3 = this;
 
-            let cursor = this._connection
-                .transaction([this._store], 'readwrite')
-                .objectStore(this._store)
-                .openCursor();
+            return new Promise(function (resolve, reject) {
+                var request = _this3._connection.transaction([_this3._store], 'readwrite').objectStore(_this3._store).clear();
 
-            let negociacoes = [];
+                request.onsuccess = function (e) {
+                    return resolve('Negociações removidas certinho!');
+                };
+                request.onerror = function (e) {
+                    return reject(e.target.error.name);
+                };
+            });
+        }
+    }]);
 
-            cursor.onsuccess = e => {
-                let ponteiro = e.target.result;
-                if (ponteiro) {
-                    let registro = ponteiro.value;
-                    negociacoes.push(new Negociacao(registro._data, registro._quantidade, registro._valor));
-                    ponteiro.continue();
-                } else {
-                    resolve(negociacoes);
-                }
-            };
-            cursor.onerror = e => e.target.erro.name;
-        });
-    };
+    return NegociacaoDao;
+}();
 
-
-    delete() {
-        return new Promise((resolve, reject) => {
-            let request = this._connection
-                .transaction([this._store], 'readwrite')
-                .objectStore(this._store)
-                .clear();
-
-            request.onsuccess = e => resolve('Negociações removidas certinho!');
-            request.onerror = e => reject(e.target.error.name);
-        });
-    };
-
-};
+;
 
 // Para lidar também com o o IndexedDB outros desenvolvedores tornaram públicas suas bibliotecas. 
 // Por exemplo, há o Dexie e o Db.js, este último utiliza promises assim como fizemos.
+//# sourceMappingURL=NegociacaoDao.js.map
